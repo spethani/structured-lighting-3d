@@ -29,20 +29,20 @@ def binary_decode(image_indices, directory_name, permcol):
   IDiff1 = np.zeros(camera_dim)
   num_col_images = len(image_indices)
   for i in range(num_col_images):
-    image_num1 = ("0" + str(image_indices[i]))[-2:]
-    image_num2 = ("0" + str(image_indices[i] + 1))[-2:]
-    I1 = skimage.io.imread(f"{directory_name}/{image_num1}.{image_ext}")
-    I2 = skimage.io.imread(f"{directory_name}/{image_num2}.{image_ext}")
+    image_num1 = ("0" + str(image_indices[i]))[-index_length:]
+    image_num2 = ("0" + str(image_indices[i] + 1))[-index_length:]
+    I1 = skimage.io.imread(f"{directory_name}/{image_num1}.{image_ext}").astype(np.double)
+    I2 = skimage.io.imread(f"{directory_name}/{image_num2}.{image_ext}").astype(np.double)
     I_on = I1 > I2
 
-    IC = IC + I_on.astype(int) * (2 ** (num_col_images - i - 1))
+    IC = IC + I_on * (2 ** (num_col_images - i - 1))
+
     IDiff1 = IDiff1 + np.abs(I1 - I2) / (I1 + I2 + eps)
 
     bit_plane = 255 * I_on.astype("uint8")
     bit_plane_num = ("0" + str(i + 1))[-2:]
     skimage.io.imsave(f"{directory_name}/BitPlane{bit_plane_num}.bmp", bit_plane)
 
-  print(IC)
   # Use permutation to get actual indices
   print("Recovering actual indices from permutation")
   IC = IC + 1
@@ -52,7 +52,7 @@ def binary_decode(image_indices, directory_name, permcol):
       if (len(indices) == 0):
         IC[i][j] = 0
       else:
-        IC[i][j] = indices[0]
+        IC[i][j] = indices[0] + 1
         
 
   IC = IC - 0.5 
@@ -64,7 +64,7 @@ def gray_decode(name):
   gray_data_dir = f"{data_directory}/{name}"
   gray_pattern_dir = f"{pattern_directory}/{name}"
   permcol = scipy.io.loadmat(f"{gray_pattern_dir}/permcol.mat")["permcol"]
-  image_indices = np.arange(1, 19, 2) # every other pattern, because inverses are included
+  image_indices = np.arange(1, 19 + 1, 2) # every other pattern, because inverses are included
   IC_gray, IDiff1_gray = binary_decode(image_indices, gray_data_dir, permcol)
   IC_gray = IC_gray * (IC_gray >= shadow_threshold).astype(int) # eliminate shadow pixels
   IC_gray = median_filter(IC_gray, size=median_filter_param)
@@ -75,8 +75,8 @@ def gray_decode(name):
 
 def binary_decode_xor(image_indices, image_base_indices, directory_name, permcol):
   num_col_images = len(image_indices)
-  image_num1 = ("0" + str(image_base_indices[0]))[-2:]
-  image_num2 = ("0" + str(image_base_indices[1]))[-2:]
+  image_num1 = ("0" + str(image_base_indices[0]))[-index_length:]
+  image_num2 = ("0" + str(image_base_indices[1]))[-index_length:]
   I1 = skimage.io.imread(f"{directory_name}/{image_num1}.{image_ext}")
   I2 = skimage.io.imread(f"{directory_name}/{image_num2}.{image_ext}")
   I_base_on = I1 > I2
@@ -85,8 +85,8 @@ def binary_decode_xor(image_indices, image_base_indices, directory_name, permcol
   IDiff1 = np.zeros(camera_dim)
 
   for i in range(num_col_images):
-    image_num1 = ("0" + str(image_indices[i]))[-2:]
-    image_num2 = ("0" + str(image_indices[i] + 1))[-2:]
+    image_num1 = ("0" + str(image_indices[i]))[-index_length:]
+    image_num2 = ("0" + str(image_indices[i] + 1))[-index_length:]
     I1 = skimage.io.imread(f"{directory_name}/{image_num1}.{image_ext}")
     I2 = skimage.io.imread(f"{directory_name}/{image_num2}.{image_ext}")
     I_on = I1 > I2
@@ -101,7 +101,6 @@ def binary_decode_xor(image_indices, image_base_indices, directory_name, permcol
     bit_plane_num = ("0" + str(i + 1))[-2:]
     skimage.io.imsave(f"{directory_name}/BitPlane{bit_plane_num}.bmp", bit_plane)
 
-  print(IC)
   # Use permutation to get actual indices
   print("Recovering actual indices from permutation")
   IC = IC + 1
@@ -111,7 +110,7 @@ def binary_decode_xor(image_indices, image_base_indices, directory_name, permcol
       if (len(indices) == 0):
         IC[i][j] = 0
       else:
-        IC[i][j] = indices[0]
+        IC[i][j] = indices[0] + 1
         
 
   IC = IC - 0.5 
@@ -122,7 +121,7 @@ def xor_decode(name):
   xor_data_dir = f"{data_directory}/{name}"
   xor_pattern_dir = f"{pattern_directory}/{name}"
   permcol = scipy.io.loadmat(f"{xor_pattern_dir}/permcol.mat")["permcol"]
-  image_indices = np.arange(1, 19, 2)
+  image_indices = np.arange(1, 19 + 1, 2)
   image_base_indices = np.array([17, 18])
   IC_xor, IDiff1_xor = binary_decode_xor(image_indices, image_base_indices, xor_data_dir, permcol)
   plt.imshow(IC_xor)

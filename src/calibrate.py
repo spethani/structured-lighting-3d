@@ -89,8 +89,8 @@ def proj_cam_calib(cam_checkerboard, cam_dir, proj_checkerboard, proj_dir):
   return cam_mtx, cam_dist, proj_mtx, proj_dist
 
 def main():
-  cam_mtx, cam_dist, proj_mtx, proj_dist = proj_cam_calib((6, 8), "../data/calib-cam-lr", (7, 7), "../data/calib-proj-lr")
-  
+  cam_mtx, cam_dist, proj_mtx, proj_dist = proj_cam_calib((6, 8), "../data/calib-cam", (7, 7), "../data/calib-proj")
+
 
 if __name__ == "__main__":
   main()
